@@ -43,8 +43,8 @@ def print_file_duplicates(file_duplicates):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='''Скрипт принимает на вход
-    путь к git каталогу, затем просматривает все вложенные каталоги и удаляет
-    найденные дубликаты файлов''')
+    путь к каталогу, затем просматривает все вложенные каталоги и выводит на
+    экран найденные дубликаты файлов''')
     parser.add_argument('--dirpath', '-dir', default='asdf/',
                         help='Имя верхнего каталога')
     dir_path = parser.parse_args().dirpath
