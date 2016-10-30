@@ -3,51 +3,48 @@ import os
 
 
 def are_files_duplicates(file_path1, file_path2):
-    if os.path.getsize(file_path1) == os.path.getsize(file_path2):
-        return True
+    return os.path.getsize(file_path1) == os.path.getsize(file_path2)
 
 
 def find_file_duplicates(dir_path):
-    dirs_and_files = os.walk(top=dir_path)
     path_to_files = {}
-    for dir in dirs_and_files:
-        for file_ in dir[2]:
-            if not path_to_files.get(file_, []):
-                path_to_files[file_] = [dir[0] + '/']
+    for root, dir_names, file_names in os.walk(top=dir_path):
+        for file_name in file_names:
+            if file_name in path_to_files:
+                path_to_files[file_name].append(root)
             else:
-                path_to_files[file_].append(dir[0] + '/')
-    file_duplicates = {}
-    for file_, dirs in path_to_files.items():
-        while dirs:
-            dir1 = dirs[0]
-            dirs.pop(0)
-            for dir2 in dirs:
-                file_path1 = dir1 + file_
-                file_path2 = dir2 + file_
+                path_to_files[file_name] = [root]
+    path_to_file_duplicates = {}
+    for file_name, dir_names in path_to_files.items():
+        while dir_names:
+            dir_name1 = dir_names.pop(0)
+            for dir_name2 in dir_names:
+                file_path1 = os.path.join(dir_name1, file_name)
+                file_path2 = os.path.join(dir_name2, file_name)
                 if are_files_duplicates(file_path1, file_path2):
-                    if not file_duplicates.get(file_, []):
-                        file_duplicates[file_] = [dir1, dir2]
-                    elif dir1 not in file_duplicates[file_]:
-                        file_duplicates[file_].append(dir1)
-                    elif dir2 not in file_duplicates[file_]:
-                        file_duplicates[file_].append(dir2)
-    return file_duplicates
+                    if file_name not in path_to_file_duplicates:
+                        path_to_file_duplicates[file_name] = [dir_name1,
+                                                              dir_name2]
+                    elif dir_name1 not in path_to_file_duplicates[file_name]:
+                        path_to_file_duplicates[file_name].append(dir_name1)
+                    elif dir_name2 not in path_to_file_duplicates[file_name]:
+                        path_to_file_duplicates[file_name].append(dir_name2)
+    return path_to_file_duplicates
 
 
-def print_file_duplicates(file_duplicates):
+def print_file_duplicates(path_to_file_duplicates):
     output_message = 'Дубликаты файла %s найдены в следующих папках: %s'
-    for file, dirs in file_duplicates.items():
-        duplicates_in_dirs = ', '.join(dirs)
-        print(output_message % (file, duplicates_in_dirs))
+    for file_name, dir_names in path_to_file_duplicates.items():
+        file_duplicates_in_dir_names = ', '.join(dir_names)
+        print(output_message % (file_name, file_duplicates_in_dir_names))
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='''Скрипт принимает на вход
     путь к каталогу, затем просматривает все вложенные каталоги и выводит на
     экран найденные дубликаты файлов''')
-    parser.add_argument('--dirpath', '-dir', default='asdf/',
+    parser.add_argument('--dirpath', '-dir', default='asdf',
                         help='Имя верхнего каталога')
     dir_path = parser.parse_args().dirpath
-    dir_path = os.path.normpath(dir_path)
-    file_duplicates = find_file_duplicates(dir_path)
-    print_file_duplicates(file_duplicates)
+    path_to_file_duplicates = find_file_duplicates(dir_path)
+    print_file_duplicates(path_to_file_duplicates)
